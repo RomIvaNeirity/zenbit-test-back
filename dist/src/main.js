@@ -10,9 +10,7 @@ async function bootstrap() {
         forbidNonWhitelisted: true,
         transform: true,
     }));
-    const PORT = process.env.PORT || 3000;
-    app.listen(PORT);
-    console.log(`Server running on ${PORT}`);
+    await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
 //# sourceMappingURL=main.js.map

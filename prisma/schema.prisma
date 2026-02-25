@@ -17,8 +17,6 @@ model User {
   resetPasswordToken String?   @unique
   resetTokenExpires  DateTime?
   createdAt          DateTime  @default(now())
-<<<<<<< HEAD
-=======
 }
 
 model Deal {
@@ -31,5 +29,4 @@ model Deal {
   daysLeft    Int
   soldPercent Int
   
->>>>>>> cf52b4d (add deals prisma schema)
 }
