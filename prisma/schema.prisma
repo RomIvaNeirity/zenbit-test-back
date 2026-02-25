@@ -17,4 +17,19 @@ model User {
   resetPasswordToken String?   @unique
   resetTokenExpires  DateTime?
   createdAt          DateTime  @default(now())
+<<<<<<< HEAD
+=======
+}
+
+model Deal {
+  id          String @id @default(uuid())
+  imageUrl    String
+  title       String
+  price       Int
+  yield       Decimal  @db.Decimal(5, 2)
+  tiket       Int
+  daysLeft    Int
+  soldPercent Int
+  
+>>>>>>> cf52b4d (add deals prisma schema)
 }
