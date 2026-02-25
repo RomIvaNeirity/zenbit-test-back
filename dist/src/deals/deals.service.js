@@ -18,8 +18,7 @@ let DealsService = class DealsService {
         this.prisma = prisma;
     }
     async getOpenDeals() {
-        const deals = await this.prisma.deal.findMany();
-        return deals;
+        return this.prisma.deal.findMany();
     }
 };
 exports.DealsService = DealsService;
