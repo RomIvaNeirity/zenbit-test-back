@@ -7,6 +7,7 @@ import {
   Res,
 } from '@nestjs/common';
 import type { Response } from 'express';
+import type { Request } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
