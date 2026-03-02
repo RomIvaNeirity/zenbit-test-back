@@ -4,7 +4,13 @@ import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
-  app.enableCors();
+  app.enableCors({
+    origin: [
+      'http://localhost:3000', // локальний dev
+      'https://my-frontend.vercel.app', // продакшн фронт
+    ], // <- фронтенд, який робить запит
+    credentials: true, // <- дуже важливо для кукі
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({
