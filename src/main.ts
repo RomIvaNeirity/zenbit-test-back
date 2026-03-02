@@ -7,7 +7,7 @@ async function bootstrap(): Promise<void> {
   app.enableCors({
     origin: [
       'http://localhost:3000', // локальний dev
-      'https://zenbit-test-front.vercel.app/', // продакшн фронт
+      'https://zenbit-test-front.vercel.app', // продакшн фронт
     ], // <- фронтенд, який робить запит
     credentials: true, // <- дуже важливо для кукі
   });
