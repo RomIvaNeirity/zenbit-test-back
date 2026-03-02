@@ -12,6 +12,7 @@ import { ResetPasswordRequestDto } from './dto/reset-password-request.dto';
 import { randomBytes } from 'crypto';
 import { ResetPasswordConfirmDto } from './dto/reset-password-confirm.dto';
 import { MailService } from '../mail/mail.service';
+import { Response } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -58,7 +59,7 @@ export class AuthService {
     };
   }
 
-  async login(email: string, password: string) {
+  async login(email: string, password: string, res?: Response) {
     const user = await this.prisma.user.findUnique({
       where: { email },
     });
@@ -71,10 +72,24 @@ export class AuthService {
     }
 
     const payload = { sub: user.id, email: user.email };
+
+    const accessToken = this.jwtService.sign(payload);
+    const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+
+    // якщо передали res → ставимо cookie
+    if (res) {
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+      });
+    }
+
     return {
       id: user.id,
       email: user.email,
-      token: this.jwtService.sign(payload),
+      accessToken,
     };
   }
 

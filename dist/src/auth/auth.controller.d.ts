@@ -1,4 +1,6 @@
+import { JwtService } from '@nestjs/jwt';
 import type { Response } from 'express';
+import type { Request } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -6,7 +8,8 @@ import { ResetPasswordRequestDto } from './dto/reset-password-request.dto';
 import { ResetPasswordConfirmDto } from './dto/reset-password-confirm.dto';
 export declare class AuthController {
     private authService;
-    constructor(authService: AuthService);
+    private readonly jwtService;
+    constructor(authService: AuthService, jwtService: JwtService);
     register(dto: RegisterDto, res: Response): Promise<{
         user: {
             id: number;
@@ -14,13 +17,13 @@ export declare class AuthController {
         };
         accessToken: string;
     }>;
-    login(body: LoginDto): Promise<{
+    login(body: LoginDto, res: Response): Promise<{
         id: number;
         email: string;
-        token: string;
+        accessToken: string;
     }>;
-    logout(): {
-        message: string;
+    logout(res: Response): {
+        success: boolean;
     };
     requestPasswordReset(dto: ResetPasswordRequestDto): Promise<{
         message: string;
@@ -28,4 +31,12 @@ export declare class AuthController {
     resetPassword(dto: ResetPasswordConfirmDto): Promise<{
         message: string;
     }>;
+    getMe(req: Request): {
+        user: null;
+    } | {
+        user: {
+            id: number;
+            email: string;
+        };
+    };
 }

@@ -4,6 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ResetPasswordRequestDto } from './dto/reset-password-request.dto';
 import { ResetPasswordConfirmDto } from './dto/reset-password-confirm.dto';
 import { MailService } from '../mail/mail.service';
+import { Response } from 'express';
 export declare class AuthService {
     private readonly prisma;
     private readonly jwtService;
@@ -17,10 +18,10 @@ export declare class AuthService {
         accessToken: string;
         refreshToken: string;
     }>;
-    login(email: string, password: string): Promise<{
+    login(email: string, password: string, res?: Response): Promise<{
         id: number;
         email: string;
-        token: string;
+        accessToken: string;
     }>;
     logout(): {
         message: string;

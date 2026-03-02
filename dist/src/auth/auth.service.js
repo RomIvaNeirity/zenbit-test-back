@@ -89,7 +89,7 @@ let AuthService = class AuthService {
             refreshToken,
         };
     }
-    async login(email, password) {
+    async login(email, password, res) {
         const user = await this.prisma.user.findUnique({
             where: { email },
         });
@@ -101,10 +101,20 @@ let AuthService = class AuthService {
             throw new common_1.UnauthorizedException('Invalid credentials');
         }
         const payload = { sub: user.id, email: user.email };
+        const accessToken = this.jwtService.sign(payload);
+        const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+        if (res) {
+            res.cookie('refreshToken', refreshToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+                path: '/',
+            });
+        }
         return {
             id: user.id,
             email: user.email,
-            token: this.jwtService.sign(payload),
+            accessToken,
         };
     }
     logout() {
