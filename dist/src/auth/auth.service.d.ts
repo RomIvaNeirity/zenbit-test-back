@@ -10,9 +10,12 @@ export declare class AuthService {
     private readonly mailService;
     constructor(prisma: PrismaService, jwtService: JwtService, mailService: MailService);
     register(dto: RegisterDto): Promise<{
-        id: number;
-        email: string;
-        token: string;
+        user: {
+            id: number;
+            email: string;
+        };
+        accessToken: string;
+        refreshToken: string;
     }>;
     login(email: string, password: string): Promise<{
         id: number;

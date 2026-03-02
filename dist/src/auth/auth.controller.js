@@ -24,8 +24,19 @@ let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
     }
-    register(dto) {
-        return this.authService.register(dto);
+    async register(dto, res) {
+        const { user, accessToken, refreshToken } = await this.authService.register(dto);
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none',
+            path: '/',
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+        return {
+            user,
+            accessToken,
+        };
     }
     login(body) {
         return this.authService.login(body.email, body.password);
@@ -45,9 +56,10 @@ __decorate([
     (0, common_1.Post)('register'),
     (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Res)({ passthrough: true })),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [register_dto_1.RegisterDto]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [register_dto_1.RegisterDto, Object]),
+    __metadata("design:returntype", Promise)
 ], AuthController.prototype, "register", null);
 __decorate([
     (0, common_1.Post)('login'),
