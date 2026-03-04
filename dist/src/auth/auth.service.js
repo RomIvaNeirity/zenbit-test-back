@@ -106,7 +106,7 @@ let AuthService = class AuthService {
         if (res) {
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
+                secure: true,
                 sameSite: 'lax',
                 path: '/',
             });
