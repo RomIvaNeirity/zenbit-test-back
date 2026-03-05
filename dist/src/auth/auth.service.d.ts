@@ -22,6 +22,7 @@ export declare class AuthService {
         id: number;
         email: string;
         accessToken: string;
+        refreshToken: string;
     }>;
     logout(): {
         message: string;
@@ -30,6 +31,9 @@ export declare class AuthService {
         message: string;
     }>;
     resetPassword(dto: ResetPasswordConfirmDto): Promise<{
+        message: string;
+    }>;
+    refresh(refreshToken: string, res: Response): Promise<{
         message: string;
     }>;
 }

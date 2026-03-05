@@ -14,6 +14,13 @@ import { ResetPasswordConfirmDto } from './dto/reset-password-confirm.dto';
 import { MailService } from '../mail/mail.service';
 import { Response } from 'express';
 
+interface JwtPayload {
+  sub: number; // або string, залежить від твоєї БД
+  email?: string;
+  iat?: number;
+  exp?: number;
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -78,11 +85,17 @@ export class AuthService {
 
     // якщо передали res → ставимо cookie
     if (res) {
+      res.cookie('accessToken', accessToken, {
+        httpOnly: true,
+        secure: false, // в dev false
+        sameSite: 'lax',
+        maxAge: 15 * 60 * 1000,
+      });
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
-        secure: true,
+        secure: false,
         sameSite: 'lax',
-        path: '/',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       });
     }
 
@@ -90,6 +103,7 @@ export class AuthService {
       id: user.id,
       email: user.email,
       accessToken,
+      refreshToken,
     };
   }
 
@@ -131,5 +145,42 @@ export class AuthService {
     });
 
     return { message: 'Password updated successfully' };
+  }
+
+  async refresh(refreshToken: string, res: Response) {
+    let payload: JwtPayload;
+
+    try {
+      payload = this.jwtService.verify(refreshToken, {
+        secret: process.env.JWT_REFRESH_SECRET,
+      });
+    } catch {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: payload.sub },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const newAccessToken = this.jwtService.sign(
+      { sub: user.id },
+      {
+        secret: process.env.JWT_SECRET,
+        expiresIn: '15m',
+      },
+    );
+
+    res.cookie('accessToken', newAccessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 15 * 60 * 1000,
+    });
+
+    return { message: 'Token refreshed' };
   }
 }

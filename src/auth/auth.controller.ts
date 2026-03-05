@@ -7,6 +7,7 @@ import {
   Res,
   Get,
   Req,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import type { Response } from 'express';
@@ -17,8 +18,9 @@ import { LoginDto } from './dto/login.dto';
 import { ResetPasswordRequestDto } from './dto/reset-password-request.dto';
 import { ResetPasswordConfirmDto } from './dto/reset-password-confirm.dto';
 
-interface RequestWithHeaders extends Request {
-  headers: Record<string, string | undefined>;
+interface Cookies {
+  accessToken?: string;
+  refreshToken?: string;
 }
 
 @Controller('auth')
@@ -38,6 +40,14 @@ export class AuthController {
       await this.authService.register(dto);
 
     res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      path: '/',
+      maxAge: 15 * 60 * 1000,
+    });
+
+    res.cookie('accessToken', accessToken, {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
@@ -63,6 +73,11 @@ export class AuthController {
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       secure: process.env.NODE_ENV === 'production',
     });
+    res.clearCookie('accessToken', {
+      path: '/',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      secure: process.env.NODE_ENV === 'production',
+    });
 
     return { success: true };
   }
@@ -81,15 +96,16 @@ export class AuthController {
   @Get('me')
   getMe(@Req() req: Request) {
     try {
-      const refreshToken = req.cookies?.refreshToken;
-      if (!refreshToken) {
+      const cookies = req.cookies as Cookies;
+      const accessToken = cookies.accessToken;
+      if (!accessToken) {
         return { user: null };
       }
 
       const payload = this.jwtService.verify<{
         sub: number;
         email: string;
-      }>(refreshToken);
+      }>(accessToken);
 
       return {
         user: {
@@ -100,5 +116,20 @@ export class AuthController {
     } catch {
       return { user: null };
     }
+  }
+
+  @Post('refresh')
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const cookies = req.cookies as Cookies;
+    const refreshToken = cookies.refreshToken;
+
+    if (!refreshToken) {
+      throw new UnauthorizedException('No refresh token');
+    }
+
+    return this.authService.refresh(refreshToken, res);
   }
 }

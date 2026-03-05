@@ -34,6 +34,13 @@ let AuthController = class AuthController {
             secure: true,
             sameSite: 'none',
             path: '/',
+            maxAge: 15 * 60 * 1000,
+        });
+        res.cookie('accessToken', accessToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none',
+            path: '/',
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
         return {
@@ -50,6 +57,11 @@ let AuthController = class AuthController {
             sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
             secure: process.env.NODE_ENV === 'production',
         });
+        res.clearCookie('accessToken', {
+            path: '/',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            secure: process.env.NODE_ENV === 'production',
+        });
         return { success: true };
     }
     requestPasswordReset(dto) {
@@ -60,11 +72,12 @@ let AuthController = class AuthController {
     }
     getMe(req) {
         try {
-            const refreshToken = req.cookies?.refreshToken;
-            if (!refreshToken) {
+            const cookies = req.cookies;
+            const accessToken = cookies.accessToken;
+            if (!accessToken) {
                 return { user: null };
             }
-            const payload = this.jwtService.verify(refreshToken);
+            const payload = this.jwtService.verify(accessToken);
             return {
                 user: {
                     id: payload.sub,
@@ -75,6 +88,14 @@ let AuthController = class AuthController {
         catch {
             return { user: null };
         }
+    }
+    async refresh(req, res) {
+        const cookies = req.cookies;
+        const refreshToken = cookies.refreshToken;
+        if (!refreshToken) {
+            throw new common_1.UnauthorizedException('No refresh token');
+        }
+        return this.authService.refresh(refreshToken, res);
     }
 };
 exports.AuthController = AuthController;
@@ -124,6 +145,14 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "getMe", null);
+__decorate([
+    (0, common_1.Post)('refresh'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Res)({ passthrough: true })),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "refresh", null);
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)('auth'),
     __metadata("design:paramtypes", [auth_service_1.AuthService,

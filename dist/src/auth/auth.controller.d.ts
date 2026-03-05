@@ -21,6 +21,7 @@ export declare class AuthController {
         id: number;
         email: string;
         accessToken: string;
+        refreshToken: string;
     }>;
     logout(res: Response): {
         success: boolean;
@@ -39,4 +40,7 @@ export declare class AuthController {
             email: string;
         };
     };
+    refresh(req: Request, res: Response): Promise<{
+        message: string;
+    }>;
 }

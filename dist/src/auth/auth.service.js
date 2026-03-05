@@ -104,17 +104,24 @@ let AuthService = class AuthService {
         const accessToken = this.jwtService.sign(payload);
         const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
         if (res) {
+            res.cookie('accessToken', accessToken, {
+                httpOnly: true,
+                secure: false,
+                sameSite: 'lax',
+                maxAge: 15 * 60 * 1000,
+            });
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
-                secure: true,
+                secure: false,
                 sameSite: 'lax',
-                path: '/',
+                maxAge: 7 * 24 * 60 * 60 * 1000,
             });
         }
         return {
             id: user.id,
             email: user.email,
             accessToken,
+            refreshToken,
         };
     }
     logout() {
@@ -153,6 +160,34 @@ let AuthService = class AuthService {
             data: { passwordHash: hash, resetPasswordToken: null },
         });
         return { message: 'Password updated successfully' };
+    }
+    async refresh(refreshToken, res) {
+        let payload;
+        try {
+            payload = this.jwtService.verify(refreshToken, {
+                secret: process.env.JWT_REFRESH_SECRET,
+            });
+        }
+        catch {
+            throw new common_1.UnauthorizedException('Invalid refresh token');
+        }
+        const user = await this.prisma.user.findUnique({
+            where: { id: payload.sub },
+        });
+        if (!user) {
+            throw new common_1.UnauthorizedException('User not found');
+        }
+        const newAccessToken = this.jwtService.sign({ sub: user.id }, {
+            secret: process.env.JWT_SECRET,
+            expiresIn: '15m',
+        });
+        res.cookie('accessToken', newAccessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 15 * 60 * 1000,
+        });
+        return { message: 'Token refreshed' };
     }
 };
 exports.AuthService = AuthService;
