@@ -131,7 +131,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "requestPasswordReset", null);
 __decorate([
-    (0, common_1.Post)('reset-password/confirm'),
+    (0, common_1.Post)('reset-password-confirm'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),

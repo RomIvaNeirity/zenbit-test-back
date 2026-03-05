@@ -5,34 +5,32 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MailService = void 0;
 const common_1 = require("@nestjs/common");
-const nodemailer_1 = __importDefault(require("nodemailer"));
+const brevo_1 = require("@getbrevo/brevo");
 let MailService = class MailService {
-    transporter = nodemailer_1.default.createTransport({
-        host: process.env.MAIL_HOST,
-        port: Number(process.env.MAIL_PORT),
-        secure: false,
-        auth: {
-            user: process.env.MAIL_USER,
-            pass: process.env.MAIL_PASSWORD,
-        },
-    });
+    client;
+    constructor() {
+        this.client = new brevo_1.BrevoClient({
+            apiKey: process.env.BREVO_API_KEY,
+        });
+    }
     async sendResetPassword(email, token) {
-        const resetLink = `http://localhost:3000/reset-password?token=${token}`;
-        await this.transporter.sendMail({
-            from: `"Support" <${process.env.MAIL_FROM}>`,
-            to: email,
+        const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+        await this.client.transactionalEmails.sendTransacEmail({
+            sender: {
+                name: 'Support',
+                email: process.env.MAIL_FROM,
+            },
+            to: [{ email }],
             subject: 'Reset your password',
-            html: `
+            htmlContent: `
         <p>You requested password reset</p>
-        <p>
-          <a href="${resetLink}">Click here to reset password</a>
-        </p>
+        <p><a href="${resetLink}">Click here to reset password</a></p>
         <p>This link is valid for 15 minutes</p>
       `,
         });
@@ -40,6 +38,7 @@ let MailService = class MailService {
 };
 exports.MailService = MailService;
 exports.MailService = MailService = __decorate([
-    (0, common_1.Injectable)()
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [])
 ], MailService);
 //# sourceMappingURL=mail.service.js.map

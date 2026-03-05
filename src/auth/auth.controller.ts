@@ -87,7 +87,7 @@ export class AuthController {
     return this.authService.requestPasswordReset(dto);
   }
 
-  @Post('reset-password/confirm')
+  @Post('reset-password-confirm')
   @HttpCode(HttpStatus.OK)
   resetPassword(@Body() dto: ResetPasswordConfirmDto) {
     return this.authService.resetPassword(dto);

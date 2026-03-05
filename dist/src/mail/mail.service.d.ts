@@ -1,4 +1,5 @@
 export declare class MailService {
-    private readonly transporter;
+    private client;
+    constructor();
     sendResetPassword(email: string, token: string): Promise<void>;
 }

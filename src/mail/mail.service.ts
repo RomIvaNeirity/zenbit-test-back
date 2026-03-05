@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+/* import { Injectable } from '@nestjs/common';
 import nodemailer from 'nodemailer';
 
 @Injectable()
@@ -13,7 +13,7 @@ export class MailService {
     },
   });
   async sendResetPassword(email: string, token: string): Promise<void> {
-    const resetLink = `http://localhost:3000/reset-password?token=${token}`;
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
 
     await this.transporter.sendMail({
       from: `"Support" <${process.env.MAIL_FROM}>`,
@@ -24,6 +24,39 @@ export class MailService {
         <p>
           <a href="${resetLink}">Click here to reset password</a>
         </p>
+        <p>This link is valid for 15 minutes</p>
+      `,
+    });
+  }
+}
+ */
+
+import { Injectable } from '@nestjs/common';
+import { BrevoClient } from '@getbrevo/brevo';
+
+@Injectable()
+export class MailService {
+  private client: BrevoClient;
+
+  constructor() {
+    this.client = new BrevoClient({
+      apiKey: process.env.BREVO_API_KEY!,
+    });
+  }
+
+  async sendResetPassword(email: string, token: string): Promise<void> {
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+
+    await this.client.transactionalEmails.sendTransacEmail({
+      sender: {
+        name: 'Support',
+        email: process.env.MAIL_FROM!,
+      },
+      to: [{ email }],
+      subject: 'Reset your password',
+      htmlContent: `
+        <p>You requested password reset</p>
+        <p><a href="${resetLink}">Click here to reset password</a></p>
         <p>This link is valid for 15 minutes</p>
       `,
     });
